@@ -15,18 +15,18 @@
              :states {:heater :off
                       :cooler :off
                       :fan :off}
-             :set-states (partial swap! hvac assoc :states)})
+             :set-states! (partial swap! hvac assoc :states)})
     hvac))
 
 (defn make-hvac-stub []
   (let [hvac (make-hvac)]
-    (swap! hvac assoc :set-temp (fn [temp]
-                                  (swap! hvac assoc :get-temp (constantly temp))))
+    (swap! hvac assoc :set-temp! (fn [temp]
+                                   (swap! hvac assoc :get-temp (constantly temp))))
     hvac))
 
 (defn make-hvac-stub-with-temp [temp]
   (let [hvac (make-hvac-stub)]
-    ((:set-temp @hvac) temp)
+    ((:set-temp! @hvac) temp)
     hvac))
 
 
