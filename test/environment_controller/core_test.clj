@@ -12,12 +12,10 @@
   (let [hvac (atom nil)]
     (reset! hvac
             {:get-temp (fn []) ; not implemented
-             :heater :off
-             :cooler :off
-             :fan :off
-             :set-heater (partial swap! hvac assoc :heater)
-             :set-cooler (partial swap! hvac assoc :cooler)
-             :set-fan (partial swap! hvac assoc :fan)})
+             :states {:heater :off
+                      :cooler :off
+                      :fan :off}
+             :set-states (partial swap! hvac assoc :states)})
     hvac))
 
 (defn make-hvac-stub []
@@ -31,26 +29,30 @@
     ((:set-temp @hvac) temp)
     hvac))
 
-(defn hvac-states [hvac]
-  (select-keys @hvac [:heater :cooler :fan]))
+
+(defn assert-states [hvac expected]
+  (is (= (@hvac :states)
+         expected)))
 
 
 (deftest test-tic-does-nothing-to-hvac-states-when-temp-is-just-right
-  (testing "tic does nothing to hvac states when hvac has 70 degree temp"
+  (testing "tic does nothing to hvac states when :get-temp returns 70 degrees"
     (let [hvac (make-hvac-stub-with-temp 70)]
       (tic hvac)
-      (is (= (hvac-states hvac)
-             {:heater :off, :cooler :off, :fan :off})))))
+      (assert-states hvac {:heater :off, :cooler :off, :fan :off}))))
+
+(deftest test-tic-turns-on-cooler-and-fan-when-temp-is-too-high
+  (testing "tic turns on cooler and fan when :get-temp returns 76 degrees"
+    (let [hvac (make-hvac-stub-with-temp 76)]
+      (tic hvac)
+      (assert-states hvac {:heater :off, :cooler :on, :fan :on}))))
+
+(deftest test-tic-turns-on-heater-and-fan-when-temp-is-too-low
+  (testing "tic turns on heater and fan when :get-temp returns 64 degrees"
+    (let [hvac (make-hvac-stub-with-temp 64)]
+      (tic hvac)
+      (assert-states hvac {:heater :on, :cooler :off, :fan :on}))))
 
 
-;; (deftest test-tic-returns-correct-map-of-states-when-too-hot
-;;   (testing "tic returns map of states (cool on, fan on, heat off) when hvac has 76 degree temp"
-;;     (is (= (tic {:get-temp (constantly 76)})
-;;            {:cool true, :heat nil, :fan true}))))
-
-;; (deftest test-tic-returns-correct-map-of-states-when-too-cold
-;;   (testing "tic returns map of states (cool off, fan on, heat on) when hvac has 64 degree temp"
-;;     (is (= (tic {:get-temp (constantly 64)})
-;;            {:cool nil, :heat true, :fan true}))))
 
 (run-tests 'environment-controller.core-test)
