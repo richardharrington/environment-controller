@@ -1,6 +1,8 @@
 (ns environment-controller.core)
 
-(defn foo
-  "I don't do a whole lot."
-  [x]
-  (println x "Hello, World!"))
+(defn tic [get-temp-from-hvac]
+  (let [temp (get-temp-from-hvac)]
+    (cond
+     (< temp 65) {:cool nil, :heat true, :fan true}
+     (> temp 75) {:cool true, :heat nil, :fan true}
+     :otherwise  {:cool nil, :heat nil, :fan nil})))
