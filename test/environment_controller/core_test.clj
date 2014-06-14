@@ -30,11 +30,11 @@
                                 :blower false}})
     hvac))
 
-(defn execute-tics-with-temps [hvac temp-sequence]
+(defn execute-tics-with-temps! [hvac temp-sequence]
   (doseq [temp temp-sequence]
     (when temp
       ((:set-temp! @hvac) temp))
-    (tic hvac)))
+    (tic! hvac)))
 
 (defn assert-states [hvac expected]
   (is (= (:states @hvac)
@@ -42,7 +42,7 @@
 
 (defn assert-temp-sequence-leads-to-states [temp-sequence expected-states]
   (let [hvac (make-hvac-stub)]
-    (execute-tics-with-temps hvac temp-sequence)
+    (execute-tics-with-temps! hvac temp-sequence)
     (assert-states hvac expected-states)))
 
 
