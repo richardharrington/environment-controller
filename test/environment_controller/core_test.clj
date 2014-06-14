@@ -28,8 +28,7 @@
 
 (defn execute-tics-with-temps! [hvac temp-sequence]
   (doseq [temp temp-sequence]
-    (when temp
-      ((:set-temp! @hvac) temp))
+    ((:set-temp! @hvac) temp)
     (tic! hvac)))
 
 (defn assert-states [hvac expected]
@@ -70,7 +69,7 @@
 (deftest test-tic-keeps-blower-on-till-heater-cools-down
   (testing "blower stays on even under moderate conditions if heater has been off for less than 5 tics"
     (assert-temp-sequence-leads-to-states
-     [cold moderate nil nil nil nil]
+     [cold moderate moderate moderate moderate moderate]
      {:heater-on? false
       :cooler-on? false
       :blower-on? true})))
@@ -78,7 +77,7 @@
 (deftest test-tic-turns-blower-off-after-heater-cools-down
   (testing "blower turns off under moderate conditions if heater has been off for at least 5 tics"
     (assert-temp-sequence-leads-to-states
-     [cold moderate nil nil nil nil nil]
+     [cold moderate moderate moderate moderate moderate moderate]
      {:heater-on? false
       :cooler-on? false
       :blower-on? false})))
@@ -86,7 +85,7 @@
 (deftest test-tic-keeps-cooler-off-until-its-ready-to-start-up-again
   (testing "cooler stays off even under hot conditions if it's been off for less than 3 tics"
     (assert-temp-sequence-leads-to-states
-     [hot moderate hot nil]
+     [hot moderate hot hot]
      {:heater-on? false
       :cooler-on? false
       :blower-on? true})))
@@ -94,7 +93,7 @@
 (deftest test-tic-turns-cooler-on-if-its-too-hot-and-cooler-has-been-off-long-enough
   (testing "cooler turns on under hot conditions if it's been off for at least 3 tics"
     (assert-temp-sequence-leads-to-states
-     [hot moderate hot nil nil]
+     [hot moderate hot hot hot]
      {:heater-on? false
       :cooler-on? true
       :blower-on? true})))
