@@ -1,6 +1,6 @@
-(ns environment-controller.core-test
+(ns environment-controller.env-ctrl-test
   (:require [clojure.test :refer :all]
-            [environment-controller.core :refer :all]
+            [environment-controller.env-ctrl :refer :all]
             [environment-controller.hvac]))
 
 (def hot (+ perfect-temp tolerance 1))

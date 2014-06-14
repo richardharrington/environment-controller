@@ -1,4 +1,4 @@
-(ns environment-controller.core)
+(ns environment-controller.env-ctrl)
 
 
 (def perfect-temp 70)
