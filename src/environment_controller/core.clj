@@ -14,25 +14,23 @@
 
 (def heater-countdown (atom 0))
 (def cooler-countdown (atom 0))
-(def stored-states (atom {:heater :off, :cooler :off, :blower :off}))
-
-(def off-or-on
-  {false :off
-   true :on})
+(def stored-states (atom {:heater false
+                          :cooler false
+                          :blower false}))
 
 (defn tic [hvac]
   (let [{set-hvac-states! :set-states!, get-hvac-temp :get-temp} @hvac
         temp (get-hvac-temp)
         too-cold (too-cold? temp)
         too-hot (too-hot? temp)
-        next-states {:heater (off-or-on too-cold)
-                     :cooler (off-or-on (and too-hot (= @cooler-countdown 0)))
-                     :blower (off-or-on (or too-hot too-cold (> @heater-countdown 0)))}]
+        next-states {:heater too-cold
+                     :cooler (and too-hot (= @cooler-countdown 0))
+                     :blower (or too-hot too-cold (> @heater-countdown 0))}]
     (cond
-     (= (next-states :heater) :on) (reset! heater-countdown 5)
+     (next-states :heater) (reset! heater-countdown 5)
      (> @heater-countdown 0) (swap! heater-countdown dec))
     (cond
-     (and (= (next-states :cooler) :off) (= (@stored-states :cooler) :on)) (reset! cooler-countdown 2)
+     (and (@stored-states :cooler) (not (next-states :cooler))) (reset! cooler-countdown 2)
      (> @cooler-countdown 0) (swap! cooler-countdown dec))
     (reset! stored-states next-states)
     (set-hvac-states! next-states)))

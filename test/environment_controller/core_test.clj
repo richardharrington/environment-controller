@@ -22,9 +22,9 @@
   (let [hvac (atom nil)]
     (reset! hvac
             {:get-temp (fn []) ; not implemented
-             :states {:heater :off
-                      :cooler :off
-                      :blower :off}
+             :states {:heater false
+                      :cooler false
+                      :blower false}
              :set-states! (partial swap! hvac assoc :states)})
     hvac))
 
@@ -55,57 +55,57 @@
   (testing "tic does nothing to hvac states when :get-temp returns 70 degrees"
     (assert-temp-sequence-leads-to-states
      [70]
-     {:heater :off
-      :cooler :off
-      :blower :off})))
+     {:heater false
+      :cooler false
+      :blower false})))
 
 (deftest test-tic-turns-on-cooler-and-blower-when-temp-starts-out-too-high
   (testing "tic turns on cooler and blower when :get-temp returns 76 degrees"
     (assert-temp-sequence-leads-to-states
      [76]
-     {:heater :off
-      :cooler :on
-      :blower :on})))
+     {:heater false
+      :cooler true
+      :blower true})))
 
 (deftest test-tic-turns-on-heater-and-blower-when-temp-starts-out-too-low
   (testing "tic turns on heater and blower when :get-temp returns 64 degrees"
     (assert-temp-sequence-leads-to-states
      [64]
-     {:heater :on
-      :cooler :off
-      :blower :on})))
+     {:heater true
+      :cooler false
+      :blower true})))
 
 (deftest test-tic-keeps-blower-on-till-heater-cools-down
   (testing "blower stays on even under moderate conditions if heater has been off for less than 5 tics"
     (assert-temp-sequence-leads-to-states
      [64 70 nil nil nil nil]
-     {:heater :off
-      :cooler :off
-      :blower :on})))
+     {:heater false
+      :cooler false
+      :blower true})))
 
 (deftest test-tic-turns-blower-off-after-heater-cools-down
   (testing "blower turns off under moderate conditions if heater has been off for at least 5 tics"
     (assert-temp-sequence-leads-to-states
      [64 70 nil nil nil nil nil]
-     {:heater :off
-      :cooler :off
-      :blower :off})))
+     {:heater false
+      :cooler false
+      :blower false})))
 
 (deftest test-tic-keeps-cooler-off-until-its-ready-to-start-up-again
   (testing "cooler stays off even under hot conditions if it's been off for less than 3 tics"
     (assert-temp-sequence-leads-to-states
      [76 70 76 nil]
-     {:heater :off
-      :cooler :off
-      :blower :on})))
+     {:heater false
+      :cooler false
+      :blower true})))
 
 (deftest test-tic-turns-cooler-on-if-its-too-hot-and-cooler-has-been-off-long-enough
   (testing "cooler turns on under hot conditions if it's been off for at least 3 tics"
     (assert-temp-sequence-leads-to-states
      [76 70 76 nil nil]
-     {:heater :off
-      :cooler :on
-      :blower :on})))
+     {:heater false
+      :cooler true
+      :blower true})))
 
 
 (run-tests 'environment-controller.core-test)
