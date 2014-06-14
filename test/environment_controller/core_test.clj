@@ -7,6 +7,10 @@
 ; keep track of that entirely ourselves -- i.e., do
 ; we have getters, or just setters?
 
+(def hot (+ perfect-temp tolerance 1))
+(def cold (- perfect-temp tolerance 1))
+(def moderate perfect-temp)
+
 
 (defn fixtures [f]
   (reset! heater-countdown 0)
@@ -54,7 +58,7 @@
 (deftest test-tic-does-nothing-to-hvac-states-when-temp-starts-out-just-right
   (testing "tic does nothing to hvac states when :get-temp returns 70 degrees"
     (assert-temp-sequence-leads-to-states
-     [70]
+     [moderate]
      {:heater false
       :cooler false
       :blower false})))
@@ -62,7 +66,7 @@
 (deftest test-tic-turns-on-cooler-and-blower-when-temp-starts-out-too-high
   (testing "tic turns on cooler and blower when :get-temp returns 76 degrees"
     (assert-temp-sequence-leads-to-states
-     [76]
+     [hot]
      {:heater false
       :cooler true
       :blower true})))
@@ -70,7 +74,7 @@
 (deftest test-tic-turns-on-heater-and-blower-when-temp-starts-out-too-low
   (testing "tic turns on heater and blower when :get-temp returns 64 degrees"
     (assert-temp-sequence-leads-to-states
-     [64]
+     [cold]
      {:heater true
       :cooler false
       :blower true})))
@@ -78,7 +82,7 @@
 (deftest test-tic-keeps-blower-on-till-heater-cools-down
   (testing "blower stays on even under moderate conditions if heater has been off for less than 5 tics"
     (assert-temp-sequence-leads-to-states
-     [64 70 nil nil nil nil]
+     [cold moderate nil nil nil nil]
      {:heater false
       :cooler false
       :blower true})))
@@ -86,7 +90,7 @@
 (deftest test-tic-turns-blower-off-after-heater-cools-down
   (testing "blower turns off under moderate conditions if heater has been off for at least 5 tics"
     (assert-temp-sequence-leads-to-states
-     [64 70 nil nil nil nil nil]
+     [cold moderate nil nil nil nil nil]
      {:heater false
       :cooler false
       :blower false})))
@@ -94,7 +98,7 @@
 (deftest test-tic-keeps-cooler-off-until-its-ready-to-start-up-again
   (testing "cooler stays off even under hot conditions if it's been off for less than 3 tics"
     (assert-temp-sequence-leads-to-states
-     [76 70 76 nil]
+     [hot moderate hot nil]
      {:heater false
       :cooler false
       :blower true})))
@@ -102,7 +106,7 @@
 (deftest test-tic-turns-cooler-on-if-its-too-hot-and-cooler-has-been-off-long-enough
   (testing "cooler turns on under hot conditions if it's been off for at least 3 tics"
     (assert-temp-sequence-leads-to-states
-     [76 70 76 nil nil]
+     [hot moderate hot nil nil]
      {:heater false
       :cooler true
       :blower true})))
