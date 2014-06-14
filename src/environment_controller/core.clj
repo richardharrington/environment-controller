@@ -14,7 +14,7 @@
 
 (def heater-countdown (atom 0))
 (def cooler-countdown (atom 0))
-(def stored-states (atom {:heater :off, :cooler :off, :fan :off}))
+(def stored-states (atom {:heater :off, :cooler :off, :blower :off}))
 
 (def off-or-on
   {false :off
@@ -27,7 +27,7 @@
         too-hot (too-hot? temp)
         next-states {:heater (off-or-on too-cold)
                      :cooler (off-or-on (and too-hot (= @cooler-countdown 0)))
-                     :fan (off-or-on (or too-hot too-cold (> @heater-countdown 0)))}]
+                     :blower (off-or-on (or too-hot too-cold (> @heater-countdown 0)))}]
     (cond
      (= (next-states :heater) :on) (reset! heater-countdown 5)
      (> @heater-countdown 0) (swap! heater-countdown dec))
