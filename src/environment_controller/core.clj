@@ -29,10 +29,10 @@
                      :cooler (off-or-on (and too-hot (= @cooler-countdown 0)))
                      :fan (off-or-on (or too-hot too-cold (> @heater-countdown 0)))}]
     (cond
-     (= (next-states :heater) :on) (reset! heater-countdown 6)
+     (= (next-states :heater) :on) (reset! heater-countdown 5)
      (> @heater-countdown 0) (swap! heater-countdown dec))
     (cond
-     (and (= (next-states :cooler) :off) (= (@stored-states :cooler) :on)) (reset! cooler-countdown 3)
+     (and (= (next-states :cooler) :off) (= (@stored-states :cooler) :on)) (reset! cooler-countdown 2)
      (> @cooler-countdown 0) (swap! cooler-countdown dec))
     (reset! stored-states next-states)
     (set-hvac-states! next-states)))
