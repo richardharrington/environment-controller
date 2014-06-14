@@ -1,6 +1,7 @@
 (ns environment-controller.core-test
   (:require [clojure.test :refer :all]
-            [environment-controller.core :refer :all]))
+            [environment-controller.core :refer :all]
+            [environment-controller.hvac]))
 
 ; TODO: find out whether we're supposed to be querying
 ; the hvac device for its device states, or whether we
@@ -18,24 +19,13 @@
   (reset! stored-states {})
   (f))
 
-
-
 (use-fixtures :each fixtures)
 
-(defn make-hvac []
-  (let [hvac (atom nil)]
-    (reset! hvac
-            {:get-temp (fn []) ; not implemented
-             :states {:heater false
-                      :cooler false
-                      :blower false}
-             :set-states! (partial swap! hvac assoc :states)})
-    hvac))
-
 (defn make-hvac-stub []
-  (let [hvac (make-hvac)]
-    (swap! hvac assoc :set-temp! (fn [temp]
-                                   (swap! hvac assoc :get-temp (constantly temp))))
+  (let [hvac (environment-controller.hvac/make-hvac)]
+    (swap! hvac merge {:set-states! (partial swap! hvac assoc :states)
+                       :set-temp! (fn [temp]
+                                    (swap! hvac assoc :get-temp (constantly temp)))})
     hvac))
 
 (defn execute-tics-with-temps [hvac temp-sequence]
