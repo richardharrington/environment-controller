@@ -97,6 +97,3 @@
      {:heater-on? false
       :cooler-on? true
       :blower-on? true})))
-
-
-(run-tests 'environment-controller.core-test)
