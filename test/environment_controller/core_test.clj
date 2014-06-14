@@ -16,7 +16,6 @@
 (defn fixtures [f]
   (reset! heater-countdown 0)
   (reset! cooler-countdown 0)
-  (reset! stored-states {})
   (f))
 
 (use-fixtures :each fixtures)
@@ -25,7 +24,10 @@
   (let [hvac (environment-controller.hvac/make-hvac)]
     (swap! hvac merge {:set-states! (partial swap! hvac assoc :states)
                        :set-temp! (fn [temp]
-                                    (swap! hvac assoc :get-temp (constantly temp)))})
+                                    (swap! hvac assoc :get-temp (constantly temp)))
+                       :states {:heater false
+                                :cooler false
+                                :blower false}})
     hvac))
 
 (defn execute-tics-with-temps [hvac temp-sequence]
@@ -35,7 +37,7 @@
     (tic hvac)))
 
 (defn assert-states [hvac expected]
-  (is (= (@hvac :states)
+  (is (= (:states @hvac)
          expected)))
 
 (defn assert-temp-sequence-leads-to-states [temp-sequence expected-states]

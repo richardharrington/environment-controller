@@ -4,6 +4,7 @@
   (let [hvac (atom nil)]
     (reset! hvac
             {:get-temp (fn []) ; not implemented
+             :states {} ; not implemented
              :set-states! (fn [states])}) ; not implemented
     hvac))
 

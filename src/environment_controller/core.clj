@@ -6,32 +6,26 @@
 (def lower-temp-limit (- perfect-temp tolerance))
 (def upper-temp-limit (+ perfect-temp tolerance))
 
-(defn too-cold? [temp]
-  (< temp lower-temp-limit))
-
-(defn too-hot? [temp]
-  (> temp upper-temp-limit))
-
 (def heater-countdown (atom 0))
 (def cooler-countdown (atom 0))
-(def stored-states (atom {:heater false
-                          :cooler false
-                          :blower false}))
+
+(defn get-next-states [states temp cooler-count heater-count]
+  (let [too-cold? (< temp lower-temp-limit)
+        too-hot? (> temp upper-temp-limit)]
+    {:heater too-cold?
+     :cooler (and too-hot? (= cooler-count 0))
+     :blower (or too-hot? too-cold? (> heater-count 0))}))
 
 (defn tic [hvac]
-  (let [{set-hvac-states! :set-states!, get-hvac-temp :get-temp} @hvac
-        temp (get-hvac-temp)
-        too-cold (too-cold? temp)
-        too-hot (too-hot? temp)
-        next-states {:heater too-cold
-                     :cooler (and too-hot (= @cooler-countdown 0))
-                     :blower (or too-hot too-cold (> @heater-countdown 0))}]
+  (let [{:keys [states set-states! get-temp]} @hvac
+        temp (get-temp)
+        next-states (get-next-states states temp @cooler-countdown @heater-countdown)]
     (cond
      (next-states :heater) (reset! heater-countdown 5)
      (> @heater-countdown 0) (swap! heater-countdown dec))
     (cond
-     (and (@stored-states :cooler) (not (next-states :cooler))) (reset! cooler-countdown 2)
+     (and (states :cooler) (not (next-states :cooler))) (reset! cooler-countdown 2)
      (> @cooler-countdown 0) (swap! cooler-countdown dec))
-    (reset! stored-states next-states)
-    (set-hvac-states! next-states)))
+    (set-states! next-states)))
+
 
