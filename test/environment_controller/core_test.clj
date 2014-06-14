@@ -10,8 +10,8 @@
 
 
 (defn fixtures [f]
-  (reset! heater-countdown 0)
-  (reset! cooler-countdown 0)
+  (reset! heater-countdown-store 0)
+  (reset! cooler-countdown-store 0)
   (f))
 
 (use-fixtures :each fixtures)
