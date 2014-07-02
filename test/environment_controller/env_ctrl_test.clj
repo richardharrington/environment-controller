@@ -25,6 +25,7 @@
 (defn hvac-stub [temp-sequence]
   (let [temps (atom temp-sequence)
         device-states (atom {:heater-on? false, :cooler-on? false, :blower-on? false})]
+
     (reify
 
       hvac/IHvac
@@ -53,31 +54,31 @@
 
 
 
-(deftest test-tic-does-nothing-to-hvac-states-when-temp-starts-out-just-right
-  (testing "tic does nothing to hvac states when :get-temp returns 70 degrees"
+(deftest test-tic!-temp-moderate
+  (testing "tic! does nothing when temp is moderate"
     (assert-temp-sequence-leads-to-states
      [moderate]
      {:heater-on? false
       :cooler-on? false
       :blower-on? false})))
 
-(deftest test-tic-turns-on-cooler-and-blower-when-temp-starts-out-too-high
-  (testing "tic turns on cooler and blower when :get-temp returns 76 degrees"
+(deftest test-tic!-temp-too-hot
+  (testing "tic! turns on cooler and blower when temp is too hot"
     (assert-temp-sequence-leads-to-states
      [hot]
      {:heater-on? false
       :cooler-on? true
       :blower-on? true})))
 
-(deftest test-tic-turns-on-heater-and-blower-when-temp-starts-out-too-low
-  (testing "tic turns on heater and blower when :get-temp returns 64 degrees"
+(deftest test-tic!-temp-too-cold
+  (testing "tic! turns on heater and blower when temp is too cold"
     (assert-temp-sequence-leads-to-states
      [cold]
      {:heater-on? true
       :cooler-on? false
       :blower-on? true})))
 
-(deftest test-tic-keeps-blower-on-till-heater-cools-down
+(deftest test-tic!-not-too-hot-but-blower-stays-on
   (testing "blower stays on even under moderate conditions if heater has been off for less than 5 tics"
     (assert-temp-sequence-leads-to-states
      [cold moderate moderate moderate moderate moderate]
@@ -85,7 +86,7 @@
       :cooler-on? false
       :blower-on? true})))
 
-(deftest test-tic-turns-blower-off-after-heater-cools-down
+(deftest test-tic!-blower-turns-off-after-heater-cools-down
   (testing "blower turns off under moderate conditions if heater has been off for at least 5 tics"
     (assert-temp-sequence-leads-to-states
      [cold moderate moderate moderate moderate moderate moderate]
@@ -93,7 +94,7 @@
       :cooler-on? false
       :blower-on? false})))
 
-(deftest test-tic-keeps-cooler-off-until-its-ready-to-start-up-again
+(deftest test-tic!-too-cold-but-cooler-stays-off
   (testing "cooler stays off even under hot conditions if it's been off for less than 3 tics"
     (assert-temp-sequence-leads-to-states
      [hot moderate hot hot]
@@ -101,7 +102,7 @@
       :cooler-on? false
       :blower-on? true})))
 
-(deftest test-tic-turns-cooler-on-if-its-too-hot-and-cooler-has-been-off-long-enough
+(deftest test-tic!-cooler-turns-on-after-resting
   (testing "cooler turns on under hot conditions if it's been off for at least 3 tics"
     (assert-temp-sequence-leads-to-states
      [hot moderate hot hot hot]
