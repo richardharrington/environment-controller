@@ -9,7 +9,6 @@
 
 
 
-
 (defn fixtures [f]
   (reset! heater-countdown-store 0)
   (reset! cooler-countdown-store 0)
@@ -18,31 +17,39 @@
 
 (use-fixtures :each fixtures)
 
+
+
+(defprotocol IHvacStub
+  (get-device-states [this]))
+
 (defn hvac-stub [temp-sequence]
   (let [temps (atom temp-sequence)
         device-states (atom {:heater-on? false, :cooler-on? false, :blower-on? false})]
-    (reify hvac/IHvac
+    (reify
+
+      hvac/IHvac
       (get-temp [_]
         (let [temp (first @temps)]
           (swap! temps rest)
           temp))
-      (get-device-states [_]
-        @device-states)
       (set-device-states! [_ states]
-        (reset! device-states states)))))
+        (reset! device-states states))
+
+      IHvacStub
+      (get-device-states [_]
+        @device-states))))
 
 (defn execute-tics! [hvac num-tics]
   (dorun (dec num-tics) (repeatedly #(tic! hvac))))
 
 (defn assert-states [hvac expected]
-  (is (= (hvac/get-device-states hvac)
+  (is (= (get-device-states hvac)
          expected)))
 
 (defn assert-temp-sequence-leads-to-states [temp-sequence expected-states]
   (let [hvac (hvac-stub temp-sequence)]
     (execute-tics! hvac (count temp-sequence))
     (assert-states hvac expected-states)))
-
 
 
 
