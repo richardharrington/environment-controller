@@ -1,11 +1,12 @@
 (ns environment-controller.env-ctrl-test
   (:require [clojure.test :refer :all]
             [environment-controller.env-ctrl :refer :all]
-            [environment-controller.hvac]))
+            [environment-controller.hvac :as hvac]))
 
 (def hot (+ perfect-temp tolerance 1))
 (def cold (- perfect-temp tolerance 1))
 (def moderate perfect-temp)
+
 
 
 
@@ -16,29 +17,31 @@
 
 (use-fixtures :each fixtures)
 
-(defn make-hvac-stub []
-  (let [hvac (environment-controller.hvac/make-hvac)]
-    (swap! hvac merge {:set-states! (partial swap! hvac assoc :states)
-                       :set-temp! (fn [temp]
-                                    (swap! hvac assoc :get-temp (constantly temp)))
-                       :states {:heater-on? false
-                                :cooler-on? false
-                                :blower-on? false}})
-    hvac))
+(defn hvac-stub [temp-sequence]
+  (let [temps (atom temp-sequence)
+        device-states (atom {:heater-on? false, :cooler-on? false, :blower-on? false})]
+    (reify hvac/IHvac
+      (get-temp [_]
+        (let [temp (first @temps)]
+          (swap! temps rest)
+          temp))
+      (get-device-states [_]
+        @device-states)
+      (set-device-states! [_ states]
+        (reset! device-states states)))))
 
-(defn execute-tics-with-temps! [hvac temp-sequence]
-  (doseq [temp temp-sequence]
-    ((:set-temp! @hvac) temp)
-    (tic! hvac)))
+(defn execute-tics! [hvac num-tics]
+  (dorun (dec num-tics) (repeatedly #(tic! hvac))))
 
 (defn assert-states [hvac expected]
-  (is (= (:states @hvac)
+  (is (= (hvac/get-device-states hvac)
          expected)))
 
 (defn assert-temp-sequence-leads-to-states [temp-sequence expected-states]
-  (let [hvac (make-hvac-stub)]
-    (execute-tics-with-temps! hvac temp-sequence)
+  (let [hvac (hvac-stub temp-sequence)]
+    (execute-tics! hvac (count temp-sequence))
     (assert-states hvac expected-states)))
+
 
 
 

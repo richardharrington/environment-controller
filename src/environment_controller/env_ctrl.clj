@@ -1,4 +1,5 @@
-(ns environment-controller.env-ctrl)
+(ns environment-controller.env-ctrl
+  (:require [environment-controller.hvac :as hvac]))
 
 
 (def perfect-temp 70)
@@ -31,11 +32,11 @@
    :else cooler-countdown))
 
 (defn tic! [hvac]
-  (let [{:keys [states set-states! get-temp]} @hvac
+  (let [states (hvac/get-device-states hvac)
         cooler-on? (:cooler-on? states)
         heater-countdown @heater-countdown-store
         cooler-countdown @cooler-countdown-store
-        temp (get-temp)
+        temp (hvac/get-temp hvac)
         {next-heater-on? :heater-on?, next-cooler-on? :cooler-on? :as next-states}
           (get-next-states temp cooler-countdown heater-countdown)
         next-heater-countdown (get-next-heater-countdown next-heater-on? heater-countdown)
@@ -43,6 +44,6 @@
 
     (reset! heater-countdown-store next-heater-countdown)
     (reset! cooler-countdown-store next-cooler-countdown)
-    (set-states! next-states)))
+    (hvac/set-device-states! hvac next-states)))
 
 
