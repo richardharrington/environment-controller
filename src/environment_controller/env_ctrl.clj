@@ -6,10 +6,12 @@
 (def tolerance 5)
 (def lower-temp-limit (- perfect-temp tolerance))
 (def upper-temp-limit (+ perfect-temp tolerance))
+(def initial-devices-state {:heater-on? false, :cooler-on? false, :blower-on? false})
 
 
 (def heater-countdown-store (atom 0))
 (def cooler-countdown-store (atom 0))
+(def last-states-store (atom initial-devices-state))
 
 
 (defn get-next-states [temp cooler-countdown heater-countdown]
@@ -32,7 +34,7 @@
    :else cooler-countdown))
 
 (defn tic! [hvac]
-  (let [states (hvac/get-device-states hvac)
+  (let [states @last-states-store
         cooler-on? (:cooler-on? states)
         heater-countdown @heater-countdown-store
         cooler-countdown @cooler-countdown-store
@@ -44,6 +46,7 @@
 
     (reset! heater-countdown-store next-heater-countdown)
     (reset! cooler-countdown-store next-cooler-countdown)
+    (reset! last-states-store next-states)
     (hvac/set-device-states! hvac next-states)))
 
 

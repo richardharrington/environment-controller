@@ -13,6 +13,7 @@
 (defn fixtures [f]
   (reset! heater-countdown-store 0)
   (reset! cooler-countdown-store 0)
+  (reset! last-states-store initial-devices-state)
   (f))
 
 (use-fixtures :each fixtures)
