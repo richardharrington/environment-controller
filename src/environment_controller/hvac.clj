@@ -1,5 +1,7 @@
 (ns environment-controller.hvac)
 
-(defprotocol IHvac
-  (get-temp [this])
+(defprotocol ITemp
+  (get-temp [this]))
+
+(defprotocol IDeviceStates
   (set-device-states! [this states]))

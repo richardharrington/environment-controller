@@ -4,6 +4,9 @@
 
 (def perfect-temp 70)
 (def tolerance 5)
+(def heater-cooldown-period 5)
+(def cooler-recharge-period 3)
+
 (def lower-temp-limit (- perfect-temp tolerance))
 (def upper-temp-limit (+ perfect-temp tolerance))
 (def initial-devices-state {:heater-on? false, :cooler-on? false, :blower-on? false})
@@ -23,13 +26,13 @@
 
 (defn get-next-heater-countdown [next-heater-on? heater-countdown]
   (cond
-   next-heater-on? 5
+   next-heater-on? (dec heater-cooldown-period)
    (> heater-countdown 0) (dec heater-countdown)
    :else heater-countdown))
 
 (defn get-next-cooler-countdown [cooler-on? next-cooler-on? cooler-countdown]
   (cond
-   (and cooler-on? (not next-cooler-on?)) 2
+   (and cooler-on? (not next-cooler-on?)) (dec cooler-recharge-period)
    (> cooler-countdown 0) (dec cooler-countdown)
    :else cooler-countdown))
 

@@ -19,7 +19,7 @@
 
 
 
-(defprotocol IHvacStub
+(defprotocol IHvacDeviceStatesSupplementalStub
   (get-device-states [this]))
 
 (defn hvac-stub [temp-sequence]
@@ -28,20 +28,24 @@
 
     (reify
 
-      hvac/IHvac
+      hvac/ITemp
       (get-temp [_]
         (let [temp (first @temps)]
           (swap! temps rest)
           temp))
+
+      hvac/IDeviceStates
       (set-device-states! [_ states]
         (reset! device-states states))
 
-      IHvacStub
+      IHvacDeviceStatesSupplementalStub
       (get-device-states [_]
         @device-states))))
 
+
 (defn execute-tics! [hvac num-tics]
-  (dorun (dec num-tics) (repeatedly #(tic! hvac))))
+  (dorun (dec num-tics)
+         (repeatedly #(tic! hvac))))
 
 (defn assert-states [hvac expected]
   (is (= (get-device-states hvac)
@@ -81,7 +85,7 @@
 (deftest test-tic!-not-too-hot-but-blower-stays-on
   (testing "blower stays on even under moderate conditions if heater has been off for less than 5 tics"
     (assert-temp-sequence-leads-to-states
-     [cold moderate moderate moderate moderate moderate]
+     [cold moderate moderate moderate moderate]
      {:heater-on? false
       :cooler-on? false
       :blower-on? true})))
@@ -89,7 +93,7 @@
 (deftest test-tic!-blower-turns-off-after-heater-cools-down
   (testing "blower turns off under moderate conditions if heater has been off for at least 5 tics"
     (assert-temp-sequence-leads-to-states
-     [cold moderate moderate moderate moderate moderate moderate]
+     [cold moderate moderate moderate moderate moderate]
      {:heater-on? false
       :cooler-on? false
       :blower-on? false})))
